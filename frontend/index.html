@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica Arquitectura Distribuida</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #343a40; margin-bottom: 20px; }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+        tr:hover { background-color: #f8f9fa; }
+        .error-msg {
+            color: #dc3545;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .loading { text-align: center; color: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Personas (Desde Backend EC2)</h1>
+
+    <div class="container">
+        <div id="loading" class="loading">Cargando datos desde el servidor...</div>
+        
+        <table id="tabla-datos" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                </tr>
+            </thead>
+            <tbody id="contenido">
+                </tbody>
+        </table>
+
+        <div id="error-bloque" class="error-msg">
+            ⚠️ Error al conectar con el Backend.<br>
+            <small>Verifica CORS, Security Groups o la IP en el código.</small>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE IP ---
+        // Para que funcione en tu navegador de casa, usa la IP PÚBLICA del Backend.
+        // Para cumplir la práctica de red interna, usa la IP PRIVADA del Backend.
+        const BACKEND_URL = 'http://3.85.245.220:8080/datos'; 
+
+        async function cargarDatos() {
+            const tabla = document.getElementById('tabla-datos');
+            const contenido = document.getElementById('contenido');
+            const loading = document.getElementById('loading');
+            const errorBloque = document.getElementById('error-bloque');
+
+            try {
+                const response = await fetch(BACKEND_URL);
+                
+                if (!response.ok) throw new Error('Error en la respuesta');
+
+                const datos = await response.json();
+                
+                loading.style.display = 'none';
+                tabla.style.display = 'table';
+
+                datos.forEach(persona => {
+                    const fila = `
+                        <tr>
+                            <td>${persona.id}</td>
+                            <td>${persona.nombre}</td>
+                            <td>${persona.apellido}</td>
+                        </tr>
+                    `;
+                    contenido.innerHTML += fila;
+                });
+
+            } catch (error) {
+                console.error('Error detallado:', error);
+                loading.style.display = 'none';
+                errorBloque.style.display = 'block';
+            }
+        }
+
+        // Ejecutar al cargar la página
+        cargarDatos();
+    </script>
+</body>
+</html>
